@@ -60,7 +60,7 @@ printlog info "Updating Openshift pull-secret in namespace openshift-config with
 QUAY443_TOKEN=$(echo "${QUAY_TOKEN}" | base64 --decode | sed "s/quay\.io/quay\.io:443/g")
 OPENSHIFT_PULL_SECRET=$(oc get -n openshift-config secret pull-secret -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode)
 FULL_TOKEN="${QUAY443_TOKEN}${OPENSHIFT_PULL_SECRET}"
-oc set data secret/pull-secret -n openshift-config --from-literal=.dockerconfigjson="$(jq -s '.[0] * .[1]' <<<"${FULL_TOKEN}")"
+oc set data secret/pull-secret -n openshift-config --from-literal=.dockerconfigjson="$(jq -s '.[1] * .[0]' <<<"${FULL_TOKEN}")"
 
 printlog info "Applying ImageDigestMirrorSet"
 oc apply -f - <<EOF
