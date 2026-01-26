@@ -53,6 +53,17 @@ You'll need to be logged in to the Collective cluster that hosts ClusterPools. I
 
 If you are deploying a "Konflux" build, you must export `QUAY_TOKEN` with a base64-encoded dockerconfig with access to `quay.io/acm-d`. Alternatively, place your dockerconfig at `utils/.docker/config.json` and it will be automatically loaded.
 
+Example `utils/.docker/config.json` format:
+```json
+{
+    "auths": {
+        "quay.io": {
+            "auth": "..."
+        }
+    }
+}
+```
+
 ### Squad-specific `config.sh` Templates
 
 - GRC - [`config.sh.template-grc`](./utils/config.sh.template-grc)
