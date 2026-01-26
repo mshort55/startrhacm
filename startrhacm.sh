@@ -2,30 +2,11 @@
 
 set -e
 
-# Helper function to format logs
-function printlog() {
-  case ${1} in
-  title)
-    printf "\n##### "
-    ;;
-  info)
-    printf "* "
-    ;;
-  error)
-    printf "^^^^^ "
-    ;;
-  *)
-    printlog error "Unexpected error in printlog function. Invalid input given: ${1}"
-    exit 1
-    ;;
-  esac
-  printf "%b\n" "${2}"
-}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/utils/common.sh"
 
 # Load configuration
 printlog title "Loading configuration from utils/config.sh"
-SCRIPT_FULLPATH=$(realpath "${BASH_SOURCE[0]}")
-SCRIPT_DIR=$(dirname "${SCRIPT_FULLPATH}")
 if ls "${SCRIPT_DIR}"/utils/config.sh &>/dev/null; then
   if (! "${SCRIPT_DIR}"/utils/config.sh); then
     printlog error "Error running configuration script. Is the script executable? If not, run: chmod +x ${SCRIPT_DIR}/utils/config.sh"

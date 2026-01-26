@@ -2,31 +2,14 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/utils/common.sh"
+
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 BASE64="base64 -w 0"
 if [ "${OS}" == "darwin" ]; then
   BASE64="base64"
 fi
-
-# Helper function to format logs
-function printlog() {
-  case ${1} in
-  title)
-    printf "\n##### "
-    ;;
-  info)
-    printf "* "
-    ;;
-  error)
-    printf "^^^^^ "
-    ;;
-  *)
-    printlog error "Unexpected error in printlog function. Invalid input given: ${1}"
-    exit 1
-    ;;
-  esac
-  printf "%s\n" "${2}"
-}
 
 printlog title "Displaying start-deploy variables"
 printlog info "RHACM_PIPELINE_PATH=${RHACM_PIPELINE_PATH}"
@@ -186,48 +169,19 @@ if [[ "${DOWNSTREAM}" == "true" ]] || [[ "${INSTALL_ICSP}" == "true" ]]; then
   else
     DOWNSTREAM_QUAY_TOKEN=${QUAY_TOKEN}
   fi
-  DOWNSTREAM_QUAY_TOKEN=$(echo "${DOWNSTREAM_QUAY_TOKEN}" | base64 --decode | sed "s/quay\.io/quay\.io:443/g")
-  OPENSHIFT_PULL_SECRET=$(oc get -n openshift-config secret pull-secret -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode)
-  FULL_TOKEN="${DOWNSTREAM_QUAY_TOKEN}${OPENSHIFT_PULL_SECRET}"
   if [[ "${DOWNSTREAM}" == "true" ]]; then
     printlog info "Setting up for downstream deployment"
     export COMPOSITE_BUNDLE CUSTOM_REGISTRY_REPO QUAY_TOKEN
     COMPOSITE_BUNDLE=true
     CUSTOM_REGISTRY_REPO="quay.io:443/acm-d"
-    QUAY_TOKEN=$(echo "${DOWNSTREAM_QUAY_TOKEN}" | ${BASE64})
+    QUAY_TOKEN=$(echo "${DOWNSTREAM_QUAY_TOKEN}" | base64 --decode | sed "s/quay\.io/quay\.io:443/g" | ${BASE64})
   else
     printlog info "Installing ICSP"
   fi
-  printlog info "Updating Openshift pull-secret in namespace openshift-config with a token for quay.io:433"
-  oc set data secret/pull-secret -n openshift-config --from-literal=.dockerconfigjson="$(jq -s '.[0] * .[1]' <<<"${FULL_TOKEN}")"
+  setup_pull_secret "${DOWNSTREAM_QUAY_TOKEN}"
   printlog info "Applying downstream resources (including ImageContentSourcePolicy to point to downstream repo)"
   oc apply -k "${RHACM_DEPLOY_PATH}"/addons/downstream
-  printlog info "Applying ImageDigestMirrorSet"
-  oc apply -f - <<EOF
-apiVersion: config.openshift.io/v1
-kind: ImageDigestMirrorSet
-metadata:
-  name: image-mirror-custom
-spec:
-  imageDigestMirrors:
-    - mirrors:
-        - quay.io:443/acm-d
-        - registry.stage.redhat.io/rhacm2
-        - brew.registry.redhat.io/rh-osbs/rhacm2
-      source: registry.redhat.io/rhacm2
-    - mirrors:
-        - quay.io:443/acm-d
-        - registry.stage.redhat.io/multicluster-engine
-        - brew.registry.redhat.io/rh-osbs/multicluster-engine
-      source: registry.redhat.io/multicluster-engine
-    - mirrors:
-        - quay.io:443/acm-d
-        - registry.stage.redhat.io/openshift4
-      source: registry.redhat.io/openshift4
-    - mirrors:
-        - registry.stage.redhat.io/gatekeeper
-      source: registry.redhat.io/gatekeeper
-EOF
+  setup_image_mirrors
   # Wait for cluster node to update with ICSP--if not all the nodes are up after this, we'll continue anyway
   printlog info "Waiting up to 10 minutes for cluster nodes to update with ImageContentSourcePolicy change"
   READY="false"

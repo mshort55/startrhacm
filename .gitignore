@@ -3,3 +3,6 @@ utils/config.sh
 
 # Ignore user created YAML files
 extras/*.yaml
+
+# Ignore docker config files (for quay repo access)
+utils/.docker

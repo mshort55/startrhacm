@@ -51,7 +51,7 @@ You'll need to be logged in to the Collective cluster that hosts ClusterPools. I
 
 ### Supply a Quay token
 
-If you are deploying a "Konflux" build, you must export `QUAY_TOKEN` with a base64-encoded dockerconfig with access to `quay.io/acm-d`.
+If you are deploying a "Konflux" build, you must export `QUAY_TOKEN` with a base64-encoded dockerconfig with access to `quay.io/acm-d`. Alternatively, place your dockerconfig at `utils/.docker/config.json` and it will be automatically loaded.
 
 ### Squad-specific `config.sh` Templates
 
@@ -59,6 +59,10 @@ If you are deploying a "Konflux" build, you must export `QUAY_TOKEN` with a base
 
 ## Extras
 
+- Setup pull secret and image mirrors on a spoke cluster for Konflux builds (requires `QUAY_TOKEN` or `utils/.docker/config.json`)
+  ```bash
+  ./utils/setup-spoke-cluster-pull-secret-and-mirrors.sh
+  ```
 - Shrink and/or expand ALL ClusterPool sizes on a schedule using a CronJob. By default, schedules are set to shrink to 1 at 8 PM EST (1 AM UTC) every day and expand to 2 at 6 AM EST (11 AM UTC) Monday - Friday
   ```bash
   cd extras
