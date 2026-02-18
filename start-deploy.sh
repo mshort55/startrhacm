@@ -156,7 +156,7 @@ if (! ls "${RHACM_DEPLOY_PATH}"/prereqs/pull-secret.yaml &>/dev/null) && [[ -z "
   exit 1
 fi
 # Deploy necessary downstream resources if required
-if [[ "${DOWNSTREAM}" == "true" ]] || [[ "${INSTALL_ICSP}" == "true" ]]; then
+if [[ "${DOWNSTREAM}" == "true" ]] || [[ "${INSTALL_IDMS}" == "true" ]]; then
   if [[ -z "${QUAY_TOKEN}" ]]; then
     DOWNSTREAM_QUAY_TOKEN=$(grep "\.dockerconfigjson" "${RHACM_DEPLOY_PATH}/prereqs/pull-secret.yaml" | sed 's/.*\.dockerconfigjson: //')
   else
@@ -169,13 +169,13 @@ if [[ "${DOWNSTREAM}" == "true" ]] || [[ "${INSTALL_ICSP}" == "true" ]]; then
     CUSTOM_REGISTRY_REPO="quay.io:443/acm-d"
     QUAY_TOKEN=$(echo "${DOWNSTREAM_QUAY_TOKEN}" | base64 --decode | sed "s/quay\.io/quay\.io:443/g" | ${BASE64})
   else
-    printlog info "Installing ICSP"
+    printlog info "Installing IDMS"
   fi
   setup_pull_secret "${DOWNSTREAM_QUAY_TOKEN}"
   printlog info "Applying downstream resources (including ImageDigestMirrorSet to point to downstream repo)"
   oc apply -k "${RHACM_DEPLOY_PATH}"/addons/downstream
   setup_image_mirrors
-  # Wait for cluster node to update with ICSP--if not all the nodes are up after this, we'll continue anyway
+  # Wait for cluster node to update with IDMS--if not all the nodes are up after this, we'll continue anyway
   printlog info "Waiting up to 10 minutes for cluster nodes to update with ImageDigestMirrorSet change"
   READY="false"
   ATTEMPTS=0
