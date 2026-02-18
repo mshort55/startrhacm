@@ -32,4 +32,4 @@ export RHACM_VERSION="" # Override version -- must be three-part version like "1
 export PIPELINE_PHASE="" # Override release phase -- defaults to dev (usually either dev (formerly edge) or higher are available to install from quay--not integration)
 export RHACM_SNAPSHOT="" # Override the snapshot entirely -- should match (or omit) other RHACM version exports to prevent query errors
 export DOWNSTREAM="" # Deploy a downstream release -- set to "true" (defaults to upstream if not set). DEPLOY_DOWNSTREAM can be used alongside RHACM_VERSION and RHACM_BRANCH to fiter for versions
-export INSTALL_ICSP="" # Set up the ICSP for downstream repos independent of whether RHACM is downstream (defaults to not installing the ICSP)
+export INSTALL_IDMS="" # Set up the IDMS for downstream repos independent of whether RHACM is downstream (defaults to not installing the IDMS)
