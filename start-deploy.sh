@@ -2,14 +2,7 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/utils/common.sh"
-
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-BASE64="base64 -w 0"
-if [ "${OS}" == "darwin" ]; then
-  BASE64="base64"
-fi
+source "$(dirname "${BASH_SOURCE[0]}")/utils/common.sh"
 
 printlog title "Displaying start-deploy variables"
 printlog info "RHACM_PIPELINE_PATH=${RHACM_PIPELINE_PATH}"
@@ -179,11 +172,11 @@ if [[ "${DOWNSTREAM}" == "true" ]] || [[ "${INSTALL_ICSP}" == "true" ]]; then
     printlog info "Installing ICSP"
   fi
   setup_pull_secret "${DOWNSTREAM_QUAY_TOKEN}"
-  printlog info "Applying downstream resources (including ImageContentSourcePolicy to point to downstream repo)"
+  printlog info "Applying downstream resources (including ImageDigestMirrorSet to point to downstream repo)"
   oc apply -k "${RHACM_DEPLOY_PATH}"/addons/downstream
   setup_image_mirrors
   # Wait for cluster node to update with ICSP--if not all the nodes are up after this, we'll continue anyway
-  printlog info "Waiting up to 10 minutes for cluster nodes to update with ImageContentSourcePolicy change"
+  printlog info "Waiting up to 10 minutes for cluster nodes to update with ImageDigestMirrorSet change"
   READY="false"
   ATTEMPTS=0
   MAX_ATTEMPTS=10

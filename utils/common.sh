@@ -1,18 +1,13 @@
 #!/bin/bash
 
-# Loads QUAY_TOKEN from utils/.docker/config.json
-function load_quay_token_from_file() {
-  local utils_dir docker_config_path
-  utils_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  docker_config_path="${utils_dir}/.docker/config.json"
-  if [[ -f "${docker_config_path}" ]]; then
-    QUAY_TOKEN=$(cat "${docker_config_path}" | base64 -w0)
-    export QUAY_TOKEN
-  else
-    printlog error "${docker_config_path} does not exist"
-    exit 1
-  fi
-}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Mac base64 encoding compatability
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+BASE64="base64 -w 0"
+if [ "${OS}" == "darwin" ]; then
+  BASE64="base64"
+fi
 
 # Formats and outputs logs
 function printlog() {
@@ -34,6 +29,18 @@ function printlog() {
   printf "%b\n" "${2}"
 }
 
+# Gets QUAY_TOKEN from utils/.docker/config.json
+function get_quay_token_from_file() {
+  local docker_config_path
+  docker_config_path="${SCRIPT_DIR}/utils/.docker/config.json"
+  if [[ -f "${docker_config_path}" ]]; then
+    cat "${docker_config_path}" | ${BASE64}
+  else
+    printlog error "${docker_config_path} does not exist"
+    exit 1
+  fi
+}
+
 # Sets up secret for quay.io:443
 function setup_pull_secret() {
   local quay_token="${1}"
@@ -44,7 +51,7 @@ function setup_pull_secret() {
   fi
 
   printlog info "Updating Openshift pull-secret in namespace openshift-config with a token for quay.io:443"
-  QUAY443_TOKEN=$(echo "${quay_token}" | base64 --decode | sed "s/quay\.io/quay\.io:443/g")
+  QUAY443_TOKEN=$(echo "${quay_token}" | base64 --decode | sed 's/quay\.io"/quay\.io:443"/g')
   OPENSHIFT_PULL_SECRET=$(oc get -n openshift-config secret pull-secret -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode)
   FULL_TOKEN="${QUAY443_TOKEN}${OPENSHIFT_PULL_SECRET}"
   oc set data secret/pull-secret -n openshift-config --from-literal=.dockerconfigjson="$(jq -s '.[1] * .[0]' <<<"${FULL_TOKEN}")"
