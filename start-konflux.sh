@@ -2,12 +2,9 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/utils/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/utils/common.sh"
 
-if [[ -z "${QUAY_TOKEN}" ]]; then
-  load_quay_token_from_file
-fi
+QUAY_TOKEN=${QUAY_TOKEN:-$(get_quay_token_from_file)}
 
 printlog title "Displaying start-konflux variables"
 printlog info "ACM_CATALOG_TAG=${ACM_CATALOG_TAG}"
@@ -28,7 +25,7 @@ if [[ -z "${MCE_CATALOG_TAG}" ]]; then
 fi
 
 if [[ -z "${QUAY_TOKEN}" ]]; then
-  printlog error "QUAY_TOKEN must be set"
+  printlog error "QUAY_TOKEN must be set, or a quay.io token provided in a docker config file at utils/.docker/config.json"
   exit 1
 fi
 

@@ -1,9 +1,8 @@
-#! /bin/bash
+#!/bin/bash
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/utils/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/utils/common.sh"
 
 # Load configuration
 printlog title "Loading configuration from utils/config.sh"

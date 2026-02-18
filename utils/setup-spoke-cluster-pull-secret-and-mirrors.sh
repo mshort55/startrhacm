@@ -2,17 +2,12 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/common.sh"
-
-if [[ -z "${QUAY_TOKEN}" ]]; then
-  load_quay_token_from_file
-fi
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 printlog title "Setting up pull secret and ImageDigestMirrorSet for spoke cluster"
-
+QUAY_TOKEN=${QUAY_TOKEN:-$(get_quay_token_from_file)}
 if [[ -z "${QUAY_TOKEN}" ]]; then
-  printlog error "QUAY_TOKEN must be set"
+  printlog error "QUAY_TOKEN must be set, or a quay.io token provided in a docker config file at utils/.docker/config.json"
   exit 1
 fi
 
