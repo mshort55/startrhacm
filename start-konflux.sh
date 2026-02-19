@@ -76,9 +76,9 @@ spec:
       interval: 10m
 EOF
 
-printlog info "Waiting up to 5 minutes each for the CatalogSources to become available"
-oc wait --for=jsonpath='.status.connectionState.lastObservedState'=READY catalogsource.operators acm-dev-catalog -n openshift-marketplace --timeout=300s
-oc wait --for=jsonpath='.status.connectionState.lastObservedState'=READY catalogsource.operators mce-dev-catalog -n openshift-marketplace --timeout=300s
+printlog info "Waiting up to 10 minutes each for the CatalogSources to become available"
+oc wait --for=jsonpath='.status.connectionState.lastObservedState'=READY catalogsource.operators acm-dev-catalog -n openshift-marketplace --timeout=600s
+oc wait --for=jsonpath='.status.connectionState.lastObservedState'=READY catalogsource.operators mce-dev-catalog -n openshift-marketplace --timeout=600s
 
 TARGET_NAMESPACE=${TARGET_NAMESPACE:-"open-cluster-management"}
 printlog info "Installing the ACM Operator with TARGET_NAMESPACE=${TARGET_NAMESPACE} and ACM_CHANNEL=${ACM_CHANNEL}"
