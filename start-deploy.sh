@@ -155,6 +155,11 @@ if (! ls "${RHACM_DEPLOY_PATH}"/prereqs/pull-secret.yaml &>/dev/null) && [[ -z "
   printlog error "Error finding pull secret in deploy repo. Please consult https://github.com/stolostron/deploy on how to set it up."
   exit 1
 fi
+# Handle deprecated INSTALL_ICSP variable for backward compatibility
+if [[ -n "${INSTALL_ICSP}" ]] && [[ -z "${INSTALL_IDMS}" ]]; then
+  printlog info "INSTALL_ICSP is deprecated. Please use INSTALL_IDMS instead."
+  INSTALL_IDMS="${INSTALL_ICSP}"
+fi
 # Deploy necessary downstream resources if required
 if [[ "${DOWNSTREAM}" == "true" ]] || [[ "${INSTALL_IDMS}" == "true" ]]; then
   if [[ -z "${QUAY_TOKEN}" ]]; then
@@ -167,7 +172,7 @@ if [[ "${DOWNSTREAM}" == "true" ]] || [[ "${INSTALL_IDMS}" == "true" ]]; then
     export COMPOSITE_BUNDLE CUSTOM_REGISTRY_REPO QUAY_TOKEN
     COMPOSITE_BUNDLE=true
     CUSTOM_REGISTRY_REPO="quay.io:443/acm-d"
-    QUAY_TOKEN=$(echo "${DOWNSTREAM_QUAY_TOKEN}" | base64 --decode | sed "s/quay\.io/quay\.io:443/g" | ${BASE64})
+    QUAY_TOKEN=$(echo "${DOWNSTREAM_QUAY_TOKEN}" | base64 --decode | sed 's/"quay\.io"/"quay\.io:443"/g' | ${BASE64})
   else
     printlog info "Installing IDMS"
   fi
