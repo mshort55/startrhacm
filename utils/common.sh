@@ -51,7 +51,7 @@ function setup_pull_secret() {
   fi
 
   printlog info "Updating Openshift pull-secret in namespace openshift-config with a token for quay.io:443"
-  QUAY443_TOKEN=$(echo "${quay_token}" | base64 --decode | sed 's/quay\.io"/quay\.io:443"/g')
+  QUAY443_TOKEN=$(echo "${quay_token}" | base64 --decode | sed 's/"quay\.io"/"quay\.io:443"/g')
   OPENSHIFT_PULL_SECRET=$(oc get -n openshift-config secret pull-secret -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode)
   FULL_TOKEN="${QUAY443_TOKEN}${OPENSHIFT_PULL_SECRET}"
   oc set data secret/pull-secret -n openshift-config --from-literal=.dockerconfigjson="$(jq -s '.[1] * .[0]' <<<"${FULL_TOKEN}")"
